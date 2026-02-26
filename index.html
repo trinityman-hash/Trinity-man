@@ -1,1 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Linux &amp; Termux Commands Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #020c14;
+    --bg2: #041220;
+    --bg3: #061830;
+    --green: #00ff88;
+    --cyan: #00e5ff;
+    --blue: #0088ff;
+    --purple: #aa44ff;
+    --red: #ff3355;
+    --yellow: #ffcc00;
+    --orange: #ff8800;
+    --text: #c8e6f0;
+    --text-dim: #6a9ab0;
+    --border: rgba(0,229,255,0.15);
+    --glow-green: 0 0 10px rgba(0,255,136,0.5), 0 0 30px rgba(0,255,136,0.2);
+    --glow-cyan: 0 0 10px rgba(0,229,255,0.5), 0 0 30px rgba(0,229,255,0.2);
+    --glow-blue: 0 0 10px rgba(0,136,255,0.5);
+  }
 
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+    animation: gridMove 20s linear infinite;
+  }
+
+  @keyframes gridMove {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(40px); }
+  }
+
+  /* Floating particles */
+  .particles {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: var(--cyan);
+    border-radius: 50%;
+    animation: float linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-10vh) translateX(60px); opacity: 0; }
+  }
+
+  /* Scanlines */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px 60px;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    text-align: center;
+    padding: 50px 20px 30px;
+    position: relative;
+  }
+
+  .header-badge {
+    display: inline-block;
+    background: rgba(0,229,255,0.08);
+    border: 1px solid var(--cyan);
+    border-radius: 4px;
+    padding: 4px 14px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    box-shadow: var(--glow-cyan);
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .site-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(28px, 5vw, 60px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, var(--green) 0%, var(--cyan) 50%, var(--blue) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    filter: drop-shadow(0 0 20px rgba(0,255,136,0.4));
+    animation: titleGlow 4s ease-in-out infinite alternate;
+    margin-bottom: 10px;
+  }
+
+  @keyframes titleGlow {
+    from { filter: drop-shadow(0 0 15px rgba(0,255,136,0.3)); }
+    to { filter: drop-shadow(0 0 35px rgba(0,229,255,0.6)); }
+  }
+
+  .site-subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+  }
+
+  .site-subtitle span {
+    color: var(--green);
+  }
+
+  /* Terminal blinking cursor */
+  .cursor {
+    display: inline-block;
+    width: 10px;
+    height: 16px;
+    background: var(--green);
+    vertical-align: middle;
+    margin-left: 4px;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--cyan);
+    text-shadow: var(--glow-cyan);
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── SEARCH ── */
+  .search-section {
+    margin-bottom: 36px;
+    position: relative;
+  }
+
+  .search-container {
+    position: relative;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .search-prefix {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--green);
+    font-size: 16px;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .search-input {
+    width: 100%;
+    background: rgba(0,20,40,0.9);
+    border: 1px solid var(--cyan);
+    border-radius: 6px;
+    padding: 14px 50px 14px 46px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 15px;
+    color: var(--green);
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 0 rgba(0,229,255,0);
+    caret-color: var(--green);
+  }
+
+  .search-input::placeholder {
+    color: rgba(100,160,180,0.5);
+  }
+
+  .search-input:focus {
+    border-color: var(--green);
+    box-shadow: var(--glow-green), inset 0 0 20px rgba(0,255,136,0.05);
+  }
+
+  .search-count {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    pointer-events: none;
+  }
+
+  /* ── FILTER TABS ── */
+  .filter-tabs {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 30px;
+  }
+
+  .filter-tab {
+    background: rgba(0,15,30,0.8);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 7px 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 1px;
+    user-select: none;
+  }
+
+  .filter-tab:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: 0 0 8px rgba(0,229,255,0.2);
+  }
+
+  .filter-tab.active {
+    background: rgba(0,229,255,0.1);
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: var(--glow-cyan);
+  }
+
+  .filter-tab .tab-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  /* ── 3D TABLE ── */
+  .table-wrapper {
+    perspective: 1200px;
+    margin-bottom: 10px;
+  }
+
+  .table-3d {
+    transform-style: preserve-3d;
+    transform: rotateX(2deg);
+    transition: transform 0.4s ease;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,0.6),
+      0 0 0 1px rgba(0,229,255,0.15),
+      inset 0 1px 0 rgba(0,229,255,0.1);
+  }
+
+  .table-wrapper:hover .table-3d {
+    transform: rotateX(0deg);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* Table header */
+  thead {
+    background: linear-gradient(135deg, #041830 0%, #061a2a 100%);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  thead tr {
+    border-bottom: 2px solid var(--cyan);
+    box-shadow: 0 4px 20px rgba(0,229,255,0.2);
+  }
+
+  th {
+    padding: 16px 18px;
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s;
+    position: relative;
+  }
+
+  th:hover { color: var(--green); }
+
+  th::after {
+    content: ' ↕';
+    opacity: 0.3;
+    font-size: 9px;
+  }
+
+  th.sort-asc::after { content: ' ↑'; opacity: 1; color: var(--green); }
+  th.sort-desc::after { content: ' ↓'; opacity: 1; color: var(--green); }
+
+  /* Table rows */
+  tbody tr {
+    border-bottom: 1px solid rgba(0,229,255,0.06);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+  }
+
+  tbody tr:nth-child(even) {
+    background: rgba(0,229,255,0.02);
+  }
+
+  tbody tr:hover {
+    background: rgba(0,229,255,0.07) !important;
+    transform: translateX(4px);
+    box-shadow: -3px 0 0 var(--cyan), inset 0 0 30px rgba(0,229,255,0.04);
+  }
+
+  tbody tr.expanded {
+    background: rgba(0,229,255,0.05) !important;
+  }
+
+  td {
+    padding: 13px 18px;
+    font-size: 13px;
+    vertical-align: middle;
+  }
+
+  /* Command cell */
+  .cmd-cell {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    font-weight: bold;
+  }
+
+  .cmd-code {
+    display: inline-block;
+    background: rgba(0,255,136,0.08);
+    border: 1px solid rgba(0,255,136,0.2);
+    border-radius: 4px;
+    padding: 3px 10px;
+    color: var(--green);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  tbody tr:hover .cmd-code {
+    background: rgba(0,255,136,0.15);
+    box-shadow: var(--glow-green);
+  }
+
+  /* Category badge */
+  .badge {
+    display: inline-block;
+    border-radius: 3px;
+    padding: 2px 9px;
+    font-size: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+
+  .badge-file    { color: #00e5ff; border-color: rgba(0,229,255,0.4); background: rgba(0,229,255,0.08); }
+  .badge-network { color: #ff8800; border-color: rgba(255,136,0,0.4); background: rgba(255,136,0,0.08); }
+  .badge-system  { color: #aa44ff; border-color: rgba(170,68,255,0.4); background: rgba(170,68,255,0.08); }
+  .badge-process { color: #ff3355; border-color: rgba(255,51,85,0.4); background: rgba(255,51,85,0.08); }
+  .badge-text    { color: #ffcc00; border-color: rgba(255,204,0,0.4); background: rgba(255,204,0,0.08); }
+  .badge-user    { color: #00ff88; border-color: rgba(0,255,136,0.4); background: rgba(0,255,136,0.08); }
+  .badge-package { color: #ff6688; border-color: rgba(255,102,136,0.4); background: rgba(255,102,136,0.08); }
+  .badge-termux  { color: #44ffcc; border-color: rgba(68,255,204,0.4); background: rgba(68,255,204,0.08); }
+  .badge-disk    { color: #88aaff; border-color: rgba(136,170,255,0.4); background: rgba(136,170,255,0.08); }
+  .badge-permission { color: #ffaa00; border-color: rgba(255,170,0,0.4); background: rgba(255,170,0,0.08); }
+  .badge-archive { color: #ff55aa; border-color: rgba(255,85,170,0.4); background: rgba(255,85,170,0.08); }
+  .badge-script  { color: #55ff55; border-color: rgba(85,255,85,0.4); background: rgba(85,255,85,0.08); }
+
+  /* Difficulty dot */
+  .difficulty {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .diff-dots {
+    display: flex;
+    gap: 3px;
+  }
+
+  .diff-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .diff-dot.filled.easy   { background: var(--green); border-color: var(--green); box-shadow: 0 0 4px var(--green); }
+  .diff-dot.filled.medium { background: var(--yellow); border-color: var(--yellow); box-shadow: 0 0 4px var(--yellow); }
+  .diff-dot.filled.hard   { background: var(--red); border-color: var(--red); box-shadow: 0 0 4px var(--red); }
+
+  /* Description */
+  .desc-cell {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    max-width: 300px;
+  }
+
+  /* Expanded row */
+  .expand-row {
+    display: none;
+  }
+
+  .expand-row.open {
+    display: table-row;
+  }
+
+  .expand-content {
+    padding: 0 18px 20px 18px;
+    background: rgba(0,10,25,0.8);
+    border-bottom: 2px solid rgba(0,229,255,0.1);
+  }
+
+  .expand-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .expand-card {
+    background: rgba(0,229,255,0.04);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: 6px;
+    padding: 14px;
+  }
+
+  .expand-card-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .expand-card-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--cyan);
+    word-break: break-all;
+  }
+
+  .syntax-block {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(0,255,136,0.2);
+    border-left: 3px solid var(--green);
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--green);
+    word-break: break-all;
+    line-height: 1.6;
+  }
+
+  .copy-btn {
+    background: rgba(0,255,136,0.1);
+    border: 1px solid rgba(0,255,136,0.3);
+    border-radius: 4px;
+    padding: 6px 14px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+
+  .copy-btn:hover {
+    background: rgba(0,255,136,0.2);
+    box-shadow: var(--glow-green);
+  }
+
+  .copy-btn.copied {
+    color: var(--cyan);
+    border-color: var(--cyan);
+  }
+
+  /* No results */
+  .no-results {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+    background: rgba(0,15,30,0.6);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .no-results.visible { display: block; }
+
+  .no-results-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    filter: grayscale(0.5);
+  }
+
+  .no-results h3 {
+    font-family: 'Orbitron', monospace;
+    color: var(--text-dim);
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .no-results p {
+    font-family: 'Share Tech Mono', monospace;
+    color: rgba(100,160,180,0.4);
+    font-size: 13px;
+  }
+
+  /* Highlight match */
+  mark {
+    background: rgba(0,255,136,0.25);
+    color: var(--green);
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+
+  /* Result count */
+  .result-info {
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+
+  .result-info span { color: var(--cyan); }
+
+  /* Footer */
+  .site-footer {
+    text-align: center;
+    padding: 40px 20px 20px;
+    border-top: 1px solid var(--border);
+    margin-top: 60px;
+  }
+
+  .footer-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .footer-text a {
+    color: var(--cyan);
+    text-decoration: none;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.3); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    td:nth-child(4), th:nth-child(4),
+    td:nth-child(5), th:nth-child(5) {
+      display: none;
+    }
+
+    .table-3d { transform: none !important; }
+    .cmd-code { font-size: 11px; }
+    td { padding: 10px 12px; }
+    th { padding: 12px 12px; }
+  }
+
+  @media (max-width: 480px) {
+    td:nth-child(3), th:nth-child(3) {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Particles -->
+<div class="particles" id="particles"></div>
+
+<div class="wrapper">
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-badge">// SYSTEM ONLINE v2.0.25</div>
+    <h1 class="site-title">LINUX &amp; TERMUX<br>COMMAND BIBLE</h1>
+    <p class="site-subtitle">
+      <span>$</span> Complete Reference Database
+      <span class="cursor"></span>
+    </p>
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-value" id="totalCount">100</div>
+        <div class="stat-label">Commands</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">12</div>
+        <div class="stat-label">Categories</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">100%</div>
+        <div class="stat-label">Free</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Search -->
+  <div class="search-section">
+    <div class="search-container">
+      <span class="search-prefix">$_</span>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search commands, descriptions, examples..." autocomplete="off" spellcheck="false"/>
+      <span class="search-count" id="searchCount"></span>
+    </div>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="filter-tabs" id="filterTabs">
+    <button class="filter-tab active" data-cat="all">
+      <span class="tab-dot" style="background:#00e5ff"></span>All
+    </button>
+    <button class="filter-tab" data-cat="file">
+      <span class="tab-dot" style="background:#00e5ff"></span>File
+    </button>
+    <button class="filter-tab" data-cat="network">
+      <span class="tab-dot" style="background:#ff8800"></span>Network
+    </button>
+    <button class="filter-tab" data-cat="system">
+      <span class="tab-dot" style="background:#aa44ff"></span>System
+    </button>
+    <button class="filter-tab" data-cat="process">
+      <span class="tab-dot" style="background:#ff3355"></span>Process
+    </button>
+    <button class="filter-tab" data-cat="text">
+      <span class="tab-dot" style="background:#ffcc00"></span>Text
+    </button>
+    <button class="filter-tab" data-cat="user">
+      <span class="tab-dot" style="background:#00ff88"></span>User
+    </button>
+    <button class="filter-tab" data-cat="package">
+      <span class="tab-dot" style="background:#ff6688"></span>Package
+    </button>
+    <button class="filter-tab" data-cat="termux">
+      <span class="tab-dot" style="background:#44ffcc"></span>Termux
+    </button>
+    <button class="filter-tab" data-cat="disk">
+      <span class="tab-dot" style="background:#88aaff"></span>Disk
+    </button>
+    <button class="filter-tab" data-cat="permission">
+      <span class="tab-dot" style="background:#ffaa00"></span>Permission
+    </button>
+    <button class="filter-tab" data-cat="archive">
+      <span class="tab-dot" style="background:#ff55aa"></span>Archive
+    </button>
+    <button class="filter-tab" data-cat="script">
+      <span class="tab-dot" style="background:#55ff55"></span>Script
+    </button>
+  </div>
+
+  <!-- Result info -->
+  <div class="result-info" id="resultInfo"></div>
+
+  <!-- Table -->
+  <div class="table-wrapper">
+    <div class="table-3d" id="tableContainer">
+      <table id="cmdTable">
+        <thead>
+          <tr>
+            <th data-sort="cmd">#&nbsp; Command</th>
+            <th data-sort="desc">Description</th>
+            <th data-sort="cat">Category</th>
+            <th data-sort="diff">Level</th>
+            <th data-sort="os">Platform</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- No results -->
+  <div class="no-results" id="noResults">
+    <div class="no-results-icon">🔍</div>
+    <h3>NO RESULTS FOUND</h3>
+    <p>Try different keywords or clear the search</p>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p class="footer-text">
+      ⚡ Built for hackers, sysadmins &amp; Termux warriors &nbsp;|&nbsp;
+      <span style="color:var(--green)">$ man everything</span>
+    </p>
+  </footer>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+const commands = [
+  // FILE MANAGEMENT
+  { cmd:'ls',         cat:'file',       diff:'easy',   os:'Linux/Termux', desc:'List directory contents',            syntax:'ls [options] [path]',        example:'ls -la /sdcard',         tip:'Use -la for detailed hidden files view' },
+  { cmd:'ls -la',     cat:'file',       diff:'easy',   os:'Linux/Termux', desc:'List all files with permissions',    syntax:'ls -la [path]',              example:'ls -la ~/',              tip:'Shows hidden files and permissions' },
+  { cmd:'cd',         cat:'file',       diff:'easy',   os:'Linux/Termux', desc:'Change directory',                   syntax:'cd [directory]',             example:'cd /data/data',          tip:'cd ~ returns to home' },
+  { cmd:'pwd',        cat:'file',       diff:'easy',   os:'Linux/Termux', desc:'Print working directory',            syntax:'pwd',                        example:'pwd',                    tip:'Use in scripts to get current path' },
+  { cmd:'mkdir',      cat:'file',       diff:'easy',   os:'Linux/Termux', desc:'Create new directory',               syntax:'mkdir [-p] dirname',         example:'mkdir -p projects/app',  tip:'-p creates nested directories at once' },
+  { cmd:'rmdir',      cat:'file',       diff:'easy',   os:'Linux',        desc:'Remove empty directory',             syntax:'rmdir dirname',              example:'rmdir old_folder',       tip:'Use rm -rf for non-empty dirs' },
+  { cmd:'rm',         cat:'file',       diff:'medium', os:'Linux/Termux', desc:'Remove files or directories',        syntax:'rm [-rf] file/dir',          example:'rm -rf /tmp/junk',       tip:'DANGER: rm -rf is irreversible!' },
+  { cmd:'cp',         cat:'file',       diff:'easy',   os:'Linux/Termux', desc:'Copy files and directories',         syntax:'cp [-r] src dst',            example:'cp -r /sdcard/pics ~/backup', tip:'-r for recursive directory copy' },
+  { cmd:'mv',         cat:'file',       diff:'easy',   os:'Linux/Termux', desc:'Move or rename files',               syntax:'mv source destination',      example:'mv old.txt new.txt',     tip:'Also used to rename files' },
+  { cmd:'touch',      cat:'file',       diff:'easy',   os:'Linux/Termux', desc:'Create empty file or update timestamp', syntax:'touch filename',          example:'touch index.html',       tip:'Creates file if it does not exist' },
+  { cmd:'find',       cat:'file',       diff:'medium', os:'Linux/Termux', desc:'Search for files in a directory tree', syntax:'find [path] [options]',    example:'find / -name "*.py" 2>/dev/null', tip:'Use -name, -type, -size to filter' },
+  { cmd:'locate',     cat:'file',       diff:'easy',   os:'Linux',        desc:'Quickly find files by name',          syntax:'locate filename',           example:'locate bash_profile',    tip:'Run updatedb first to refresh index' },
+  { cmd:'tree',       cat:'file',       diff:'easy',   os:'Linux/Termux', desc:'Display directory tree structure',    syntax:'tree [path]',               example:'tree ~/projects -L 2',   tip:'Install with pkg install tree' },
+  { cmd:'stat',       cat:'file',       diff:'medium', os:'Linux/Termux', desc:'Display file statistics',             syntax:'stat filename',             example:'stat /etc/passwd',       tip:'Shows size, permissions, timestamps' },
+  { cmd:'file',       cat:'file',       diff:'easy',   os:'Linux/Termux', desc:'Determine file type',                 syntax:'file filename',             example:'file image.jpg',         tip:'Works even without extension' },
+  { cmd:'ln',         cat:'file',       diff:'medium', os:'Linux/Termux', desc:'Create hard or symbolic links',       syntax:'ln [-s] target link_name',  example:'ln -s /usr/bin/python3 python', tip:'-s creates symbolic (soft) link' },
+  { cmd:'wc',         cat:'file',       diff:'easy',   os:'Linux/Termux', desc:'Count lines, words, characters',     syntax:'wc [-lwc] file',             example:'wc -l /etc/hosts',       tip:'-l lines, -w words, -c bytes' },
+  { cmd:'du',         cat:'disk',       diff:'easy',   os:'Linux/Termux', desc:'Estimate file/directory disk usage', syntax:'du [-sh] path',              example:'du -sh ~/Downloads/*',   tip:'-h human-readable, -s summary' },
+  { cmd:'df',         cat:'disk',       diff:'easy',   os:'Linux/Termux', desc:'Show disk space usage',              syntax:'df [-h]',                    example:'df -h',                  tip:'-h gives human-readable sizes' },
+  { cmd:'lsblk',      cat:'disk',       diff:'medium', os:'Linux',        desc:'List block devices',                 syntax:'lsblk',                      example:'lsblk -f',               tip:'-f shows filesystems and UUIDs' },
+  { cmd:'mount',      cat:'disk',       diff:'hard',   os:'Linux',        desc:'Mount filesystem',                   syntax:'mount device mountpoint',    example:'mount /dev/sdb1 /mnt/usb', tip:'Use umount to unmount' },
+  { cmd:'fdisk',      cat:'disk',       diff:'hard',   os:'Linux',        desc:'Partition disk management',          syntax:'fdisk /dev/sdX',             example:'fdisk -l',               tip:'-l lists all partitions' },
+  // TEXT
+  { cmd:'cat',        cat:'text',       diff:'easy',   os:'Linux/Termux', desc:'Concatenate and display file content', syntax:'cat [options] file',       example:'cat ~/.bashrc',          tip:'cat -n shows line numbers' },
+  { cmd:'more',       cat:'text',       diff:'easy',   os:'Linux/Termux', desc:'View file content page by page',    syntax:'more filename',              example:'more /var/log/syslog',   tip:'Press space to advance pages' },
+  { cmd:'less',       cat:'text',       diff:'easy',   os:'Linux/Termux', desc:'Advanced pager for file viewing',   syntax:'less filename',              example:'less -N /etc/passwd',    tip:'/ to search, q to quit' },
+  { cmd:'head',       cat:'text',       diff:'easy',   os:'Linux/Termux', desc:'Display first lines of a file',     syntax:'head [-n N] file',           example:'head -n 20 log.txt',     tip:'Default shows first 10 lines' },
+  { cmd:'tail',       cat:'text',       diff:'easy',   os:'Linux/Termux', desc:'Display last lines of a file',      syntax:'tail [-n N] [-f] file',      example:'tail -f /var/log/syslog', tip:'-f follows file in real time' },
+  { cmd:'grep',       cat:'text',       diff:'medium', os:'Linux/Termux', desc:'Search text using patterns',        syntax:'grep [options] pattern file', example:'grep -r "error" /var/log/', tip:'-i ignore case, -r recursive' },
+  { cmd:'sed',        cat:'text',       diff:'hard',   os:'Linux/Termux', desc:'Stream editor for text processing', syntax:"sed 's/old/new/g' file",      example:"sed -i 's/foo/bar/g' file.txt", tip:'-i edits file in-place' },
+  { cmd:'awk',        cat:'text',       diff:'hard',   os:'Linux/Termux', desc:'Text processing and data extraction', syntax:"awk '{print $1}' file",     example:"awk -F: '{print $1}' /etc/passwd", tip:'Powerful field-based processing' },
+  { cmd:'sort',       cat:'text',       diff:'easy',   os:'Linux/Termux', desc:'Sort lines of text',                syntax:'sort [options] file',         example:'sort -u -r names.txt',   tip:'-u unique, -r reverse, -n numeric' },
+  { cmd:'uniq',       cat:'text',       diff:'easy',   os:'Linux/Termux', desc:'Report or filter duplicate lines',  syntax:'uniq [options] file',         example:'sort file.txt | uniq -c', tip:'Must sort first, -c shows count' },
+  { cmd:'cut',        cat:'text',       diff:'medium', os:'Linux/Termux', desc:'Remove sections from each line',    syntax:'cut -d: -f1 file',            example:"cut -d',' -f1,3 data.csv", tip:'-d delimiter, -f fields' },
+  { cmd:'tr',         cat:'text',       diff:'medium', os:'Linux/Termux', desc:'Translate or delete characters',    syntax:'tr [options] set1 set2',      example:"tr 'a-z' 'A-Z' < file",  tip:'tr -d removes characters' },
+  { cmd:'diff',       cat:'text',       diff:'medium', os:'Linux/Termux', desc:'Compare files line by line',        syntax:'diff file1 file2',            example:'diff original.txt modified.txt', tip:'-u unified format is more readable' },
+  { cmd:'echo',       cat:'text',       diff:'easy',   os:'Linux/Termux', desc:'Print text to terminal or file',    syntax:'echo [options] string',       example:'echo "Hello World" > file.txt', tip:'-e enables escape sequences' },
+  // NETWORK
+  { cmd:'ping',       cat:'network',    diff:'easy',   os:'Linux/Termux', desc:'Send ICMP echo request to host',   syntax:'ping [-c N] host',            example:'ping -c 4 google.com',   tip:'-c limits number of packets sent' },
+  { cmd:'curl',       cat:'network',    diff:'medium', os:'Linux/Termux', desc:'Transfer data from/to a server',   syntax:'curl [options] URL',          example:'curl -O https://example.com/file.zip', tip:'-O saves with original filename' },
+  { cmd:'wget',       cat:'network',    diff:'easy',   os:'Linux/Termux', desc:'Non-interactive network downloader', syntax:'wget [options] URL',         example:'wget -c https://file.zip', tip:'-c resumes interrupted download' },
+  { cmd:'ifconfig',   cat:'network',    diff:'medium', os:'Linux',        desc:'Configure network interface',      syntax:'ifconfig [interface]',         example:'ifconfig eth0',           tip:'Use ip addr on modern systems' },
+  { cmd:'ip',         cat:'network',    diff:'medium', os:'Linux/Termux', desc:'Show/manipulate routing, devices', syntax:'ip [addr|route|link]',         example:'ip addr show',            tip:'Replaces ifconfig on modern Linux' },
+  { cmd:'netstat',    cat:'network',    diff:'medium', os:'Linux',        desc:'Network statistics and connections', syntax:'netstat [options]',          example:'netstat -tulpn',          tip:'-tulpn shows listening ports' },
+  { cmd:'ss',         cat:'network',    diff:'medium', os:'Linux/Termux', desc:'Socket statistics (modern netstat)', syntax:'ss [options]',               example:'ss -tulpn',               tip:'Faster than netstat' },
+  { cmd:'nmap',       cat:'network',    diff:'hard',   os:'Linux/Termux', desc:'Network exploration and scanning', syntax:'nmap [options] target',        example:'nmap -sV 192.168.1.1',   tip:'-sV detects service versions' },
+  { cmd:'ssh',        cat:'network',    diff:'medium', os:'Linux/Termux', desc:'Secure shell remote login',        syntax:'ssh user@host [-p port]',      example:'ssh root@192.168.1.1',   tip:'-i to specify key file' },
+  { cmd:'scp',        cat:'network',    diff:'medium', os:'Linux/Termux', desc:'Secure copy via SSH',              syntax:'scp src user@host:dst',        example:'scp file.txt user@host:~/backup/', tip:'-r for recursive directory copy' },
+  { cmd:'ftp',        cat:'network',    diff:'medium', os:'Linux',        desc:'File transfer protocol client',    syntax:'ftp host',                     example:'ftp 192.168.1.100',       tip:'Use sftp for encrypted transfers' },
+  { cmd:'traceroute', cat:'network',    diff:'medium', os:'Linux/Termux', desc:'Trace path to network host',       syntax:'traceroute host',              example:'traceroute 8.8.8.8',      tip:'Shows each hop and latency' },
+  { cmd:'nslookup',   cat:'network',    diff:'easy',   os:'Linux/Termux', desc:'DNS query utility',                syntax:'nslookup hostname',            example:'nslookup google.com',     tip:'Also: dig is more detailed' },
+  { cmd:'host',       cat:'network',    diff:'easy',   os:'Linux/Termux', desc:'DNS lookup tool',                  syntax:'host domain',                  example:'host -t MX gmail.com',    tip:'-t for specific record type' },
+  // SYSTEM
+  { cmd:'uname',      cat:'system',     diff:'easy',   os:'Linux/Termux', desc:'Print system information',         syntax:'uname [options]',              example:'uname -a',                tip:'-a prints all info including kernel' },
+  { cmd:'uptime',     cat:'system',     diff:'easy',   os:'Linux/Termux', desc:'Show system uptime and load',      syntax:'uptime',                       example:'uptime',                  tip:'Load averages: 1, 5, 15 min' },
+  { cmd:'date',       cat:'system',     diff:'easy',   os:'Linux/Termux', desc:'Display or set system date/time', syntax:'date [format]',                 example:"date '+%Y-%m-%d %H:%M:%S'", tip:'+%Y-%m-%d for ISO format' },
+  { cmd:'hostname',   cat:'system',     diff:'easy',   os:'Linux/Termux', desc:'Show or set system hostname',      syntax:'hostname [newname]',           example:'hostname -I',             tip:'-I shows all IP addresses' },
+  { cmd:'env',        cat:'system',     diff:'easy',   os:'Linux/Termux', desc:'Print all environment variables', syntax:'env',                           example:'env | grep PATH',         tip:'Pipe to grep to search vars' },
+  { cmd:'export',     cat:'system',     diff:'medium', os:'Linux/Termux', desc:'Set environment variable',        syntax:'export VAR=value',              example:'export PATH=$PATH:/opt/bin', tip:'Add to .bashrc for persistence' },
+  { cmd:'alias',      cat:'system',     diff:'easy',   os:'Linux/Termux', desc:'Create command shortcuts',         syntax:"alias name='command'",         example:"alias ll='ls -la'",        tip:'Add to .bashrc to persist' },
+  { cmd:'history',    cat:'system',     diff:'easy',   os:'Linux/Termux', desc:'Show command history',             syntax:'history [n]',                  example:'history | grep apt',       tip:'!! repeats last command' },
+  { cmd:'which',      cat:'system',     diff:'easy',   os:'Linux/Termux', desc:'Locate a command',                syntax:'which command',                 example:'which python3',            tip:'Shows full path of executable' },
+  { cmd:'whereis',    cat:'system',     diff:'easy',   os:'Linux',        desc:'Locate binary, source, man pages', syntax:'whereis command',              example:'whereis bash',             tip:'Also finds docs and source' },
+  { cmd:'lsof',       cat:'system',     diff:'hard',   os:'Linux',        desc:'List open files and processes',   syntax:'lsof [options]',                example:'lsof -i :8080',            tip:'-i :PORT shows who uses the port' },
+  { cmd:'strace',     cat:'system',     diff:'hard',   os:'Linux',        desc:'Trace system calls of a process', syntax:'strace command',                example:'strace ls',               tip:'-p PID to trace running process' },
+  { cmd:'dmesg',      cat:'system',     diff:'medium', os:'Linux',        desc:'Print kernel ring buffer messages', syntax:'dmesg [options]',             example:'dmesg | tail -20',         tip:'--follow like tail -f for kernel' },
+  { cmd:'journalctl', cat:'system',     diff:'medium', os:'Linux',        desc:'Query systemd journal logs',      syntax:'journalctl [options]',          example:'journalctl -xe -u nginx',  tip:'-u for specific service logs' },
+  { cmd:'systemctl',  cat:'system',     diff:'medium', os:'Linux',        desc:'Control systemd services',        syntax:'systemctl [start|stop] service', example:'systemctl status nginx',  tip:'enable/disable for boot autostart' },
+  // PROCESS
+  { cmd:'ps',         cat:'process',    diff:'easy',   os:'Linux/Termux', desc:'Display current processes',       syntax:'ps [options]',                  example:'ps aux | grep python',    tip:'aux shows all user processes' },
+  { cmd:'top',        cat:'process',    diff:'easy',   os:'Linux/Termux', desc:'Real-time process monitor',       syntax:'top',                           example:'top -u username',         tip:'Press k to kill, q to quit' },
+  { cmd:'htop',       cat:'process',    diff:'easy',   os:'Linux/Termux', desc:'Interactive process viewer',      syntax:'htop',                          example:'htop',                    tip:'Better than top - colorful UI' },
+  { cmd:'kill',       cat:'process',    diff:'medium', os:'Linux/Termux', desc:'Send signal to process by PID',   syntax:'kill [-signal] PID',            example:'kill -9 1234',            tip:'-9 SIGKILL force kills' },
+  { cmd:'killall',    cat:'process',    diff:'medium', os:'Linux/Termux', desc:'Kill processes by name',          syntax:'killall process_name',          example:'killall firefox',         tip:'-9 forces kill' },
+  { cmd:'pkill',      cat:'process',    diff:'medium', os:'Linux/Termux', desc:'Kill processes matching pattern', syntax:'pkill [options] pattern',       example:'pkill -f "python script"', tip:'-f matches full command line' },
+  { cmd:'bg',         cat:'process',    diff:'medium', os:'Linux/Termux', desc:'Resume job in background',        syntax:'bg [job_id]',                   example:'bg %1',                   tip:'Use & after command to start in bg' },
+  { cmd:'fg',         cat:'process',    diff:'medium', os:'Linux/Termux', desc:'Bring job to foreground',         syntax:'fg [job_id]',                   example:'fg %1',                   tip:'Ctrl+Z to suspend first' },
+  { cmd:'jobs',       cat:'process',    diff:'easy',   os:'Linux/Termux', desc:'List current shell jobs',         syntax:'jobs',                          example:'jobs -l',                 tip:'-l includes process IDs' },
+  { cmd:'nohup',      cat:'process',    diff:'medium', os:'Linux/Termux', desc:'Run command immune to hangups',   syntax:'nohup command &',               example:'nohup python server.py &', tip:'Output goes to nohup.out' },
+  { cmd:'nice',       cat:'process',    diff:'hard',   os:'Linux',        desc:'Run command with modified priority', syntax:'nice -n value command',       example:'nice -n 10 make',         tip:'-20 highest, 19 lowest priority' },
+  // USER
+  { cmd:'whoami',     cat:'user',       diff:'easy',   os:'Linux/Termux', desc:'Print current username',          syntax:'whoami',                        example:'whoami',                  tip:'Same as echo $USER' },
+  { cmd:'who',        cat:'user',       diff:'easy',   os:'Linux',        desc:'Show who is logged in',           syntax:'who',                           example:'who -a',                  tip:'-a shows all info' },
+  { cmd:'id',         cat:'user',       diff:'easy',   os:'Linux/Termux', desc:'Print user and group IDs',        syntax:'id [username]',                 example:'id root',                 tip:'Shows uid, gid and groups' },
+  { cmd:'sudo',       cat:'user',       diff:'medium', os:'Linux',        desc:'Execute command as superuser',     syntax:'sudo command',                  example:'sudo apt update',         tip:'sudo -i for interactive root shell' },
+  { cmd:'su',         cat:'user',       diff:'medium', os:'Linux/Termux', desc:'Switch user account',             syntax:'su [username]',                 example:'su -l www-data',          tip:'su - loads target user environment' },
+  { cmd:'passwd',     cat:'user',       diff:'easy',   os:'Linux',        desc:'Change user password',            syntax:'passwd [username]',             example:'passwd john',             tip:'Root can change any user password' },
+  { cmd:'useradd',    cat:'user',       diff:'medium', os:'Linux',        desc:'Create a new user account',       syntax:'useradd [options] username',    example:'useradd -m -s /bin/bash bob', tip:'-m creates home directory' },
+  { cmd:'usermod',    cat:'user',       diff:'hard',   os:'Linux',        desc:'Modify user account properties',  syntax:'usermod [options] username',    example:'usermod -aG sudo alice',  tip:'-aG appends to groups' },
+  { cmd:'groups',     cat:'user',       diff:'easy',   os:'Linux/Termux', desc:'Show user group memberships',     syntax:'groups [username]',             example:'groups $USER',            tip:'No arg shows current user groups' },
+  // PACKAGE
+  { cmd:'apt update', cat:'package',    diff:'easy',   os:'Linux/Termux', desc:'Update package index',            syntax:'apt update',                    example:'sudo apt update',         tip:'Run before upgrade or install' },
+  { cmd:'apt upgrade',cat:'package',    diff:'easy',   os:'Linux/Termux', desc:'Upgrade all installed packages',  syntax:'apt upgrade [-y]',              example:'sudo apt upgrade -y',     tip:'-y auto-confirms all prompts' },
+  { cmd:'apt install',cat:'package',    diff:'easy',   os:'Linux/Termux', desc:'Install package(s)',               syntax:'apt install package_name',      example:'apt install nmap git vim', tip:'Multiple packages in one command' },
+  { cmd:'apt remove', cat:'package',    diff:'easy',   os:'Linux/Termux', desc:'Remove installed package',        syntax:'apt remove package_name',       example:'sudo apt remove --purge vim', tip:'--purge removes config too' },
+  { cmd:'apt search', cat:'package',    diff:'easy',   os:'Linux/Termux', desc:'Search available packages',       syntax:'apt search keyword',            example:'apt search python3',      tip:'or: apt-cache search keyword' },
+  { cmd:'dpkg',       cat:'package',    diff:'medium', os:'Linux',        desc:'Low-level package manager',       syntax:'dpkg [options] package.deb',    example:'dpkg -l | grep nginx',    tip:'-l lists installed packages' },
+  { cmd:'snap',       cat:'package',    diff:'easy',   os:'Linux',        desc:'Snap package manager',            syntax:'snap install package',          example:'snap install code --classic', tip:'snap list shows installed snaps' },
+  { cmd:'pip install',cat:'package',    diff:'easy',   os:'Linux/Termux', desc:'Install Python package',          syntax:'pip install package_name',      example:'pip install requests flask', tip:'pip3 for Python 3 specifically' },
+  { cmd:'npm install',cat:'package',    diff:'easy',   os:'Linux/Termux', desc:'Install Node.js package',         syntax:'npm install [-g] package',      example:'npm install -g express',  tip:'-g installs globally' },
+  // PERMISSION
+  { cmd:'chmod',      cat:'permission', diff:'medium', os:'Linux/Termux', desc:'Change file permissions',         syntax:'chmod [mode] file',             example:'chmod 755 script.sh',     tip:'chmod +x makes executable' },
+  { cmd:'chown',      cat:'permission', diff:'medium', os:'Linux',        desc:'Change file ownership',           syntax:'chown user:group file',         example:'chown -R www-data /var/www', tip:'-R changes recursively' },
+  { cmd:'chgrp',      cat:'permission', diff:'medium', os:'Linux',        desc:'Change group ownership',          syntax:'chgrp group file',              example:'chgrp developers project/', tip:'-R for recursive change' },
+  { cmd:'umask',      cat:'permission', diff:'hard',   os:'Linux',        desc:'Set default file permissions',    syntax:'umask [mask]',                  example:'umask 022',               tip:'022 allows rw-r--r-- for files' },
+  // ARCHIVE
+  { cmd:'tar',        cat:'archive',    diff:'medium', os:'Linux/Termux', desc:'Archive files (tar format)',      syntax:'tar [options] archive.tar file', example:'tar -czvf backup.tar.gz folder/', tip:'-czvf compress, -xzvf extract' },
+  { cmd:'gzip',       cat:'archive',    diff:'easy',   os:'Linux/Termux', desc:'Compress files with gzip',        syntax:'gzip [options] file',           example:'gzip -9 bigfile.txt',     tip:'-9 maximum compression level' },
+  { cmd:'zip',        cat:'archive',    diff:'easy',   os:'Linux/Termux', desc:'Create zip archive',              syntax:'zip [options] archive.zip files', example:'zip -r archive.zip folder/', tip:'-r for recursive directory' },
+  { cmd:'unzip',      cat:'archive',    diff:'easy',   os:'Linux/Termux', desc:'Extract zip archive',             syntax:'unzip archive.zip [-d dir]',    example:'unzip archive.zip -d /tmp/', tip:'-d specifies destination dir' },
+  // TERMUX SPECIFIC
+  { cmd:'pkg install',cat:'termux',     diff:'easy',   os:'Termux',       desc:'Install package in Termux',       syntax:'pkg install package_name',      example:'pkg install python git wget', tip:'Termux-specific package manager' },
+  { cmd:'pkg update', cat:'termux',     diff:'easy',   os:'Termux',       desc:'Update Termux packages',          syntax:'pkg update && pkg upgrade',     example:'pkg update && pkg upgrade -y', tip:'Run regularly for updates' },
+  { cmd:'termux-setup-storage', cat:'termux', diff:'easy', os:'Termux',   desc:'Request storage permission',      syntax:'termux-setup-storage',          example:'termux-setup-storage',    tip:'Creates ~/storage symlinks to SD' },
+  { cmd:'termux-share', cat:'termux',   diff:'easy',   os:'Termux',       desc:'Share file from Termux to Android', syntax:'termux-share file',            example:'termux-share output.pdf', tip:'Opens Android share dialog' },
+  { cmd:'termux-clipboard-get', cat:'termux', diff:'easy', os:'Termux',   desc:'Get Android clipboard content',   syntax:'termux-clipboard-get',          example:'termux-clipboard-get > clip.txt', tip:'Read clipboard into file' },
+  { cmd:'termux-clipboard-set', cat:'termux', diff:'easy', os:'Termux',   desc:'Set Android clipboard content',   syntax:'termux-clipboard-set < file',   example:'echo "text" | termux-clipboard-set', tip:'Pipe text to clipboard' },
+  { cmd:'termux-notification', cat:'termux', diff:'easy', os:'Termux',    desc:'Post Android notification',        syntax:'termux-notification --title T --content C', example:'termux-notification --title "Done" --content "Script finished"', tip:'Send notifications from scripts' },
+  { cmd:'termux-battery-status', cat:'termux', diff:'easy', os:'Termux',  desc:'Get device battery info',         syntax:'termux-battery-status',         example:'termux-battery-status',   tip:'Returns JSON with battery level' },
+  { cmd:'termux-location', cat:'termux', diff:'medium', os:'Termux',      desc:'Get device GPS location',         syntax:'termux-location',               example:'termux-location -p gps',  tip:'-p gps for GPS accuracy' },
+  { cmd:'termux-sms-send', cat:'termux', diff:'medium', os:'Termux',      desc:'Send SMS from Termux',            syntax:'termux-sms-send -n number text', example:'termux-sms-send -n +1234567890 "Hello"', tip:'Needs SMS permission' },
+  { cmd:'termux-wake-lock', cat:'termux', diff:'easy', os:'Termux',       desc:'Keep device awake',               syntax:'termux-wake-lock',              example:'termux-wake-lock && longscript.sh', tip:'Prevents sleep during scripts' },
+  { cmd:'termux-open-url', cat:'termux', diff:'easy', os:'Termux',        desc:'Open URL in Android browser',     syntax:'termux-open-url URL',           example:'termux-open-url https://google.com', tip:'Opens default browser' },
+  // SCRIPT
+  { cmd:'bash',       cat:'script',     diff:'medium', os:'Linux/Termux', desc:'Run bash script or enter shell',  syntax:'bash [script.sh]',              example:'bash script.sh arg1 arg2', tip:'bash -x for debug mode' },
+  { cmd:'chmod +x',   cat:'script',     diff:'easy',   os:'Linux/Termux', desc:'Make script executable',         syntax:'chmod +x script.sh',            example:'chmod +x deploy.sh && ./deploy.sh', tip:'Adds execute bit to file' },
+  { cmd:'cron',       cat:'script',     diff:'hard',   os:'Linux',        desc:'Schedule periodic tasks',         syntax:'crontab -e',                    example:'0 2 * * * /home/user/backup.sh', tip:'min hr day mon weekday CMD' },
+  { cmd:'at',         cat:'script',     diff:'medium', os:'Linux',        desc:'Schedule one-time task',          syntax:'at HH:MM',                      example:'echo "backup.sh" | at 02:00', tip:'atq lists scheduled jobs' },
+  { cmd:'watch',      cat:'script',     diff:'easy',   os:'Linux/Termux', desc:'Execute command periodically',    syntax:'watch [-n secs] command',       example:'watch -n 2 df -h',        tip:'-n sets interval in seconds' },
+  { cmd:'xargs',      cat:'script',     diff:'hard',   os:'Linux/Termux', desc:'Build and execute command lines', syntax:'command | xargs [command]',     example:'find . -name "*.log" | xargs rm', tip:'-I {} for custom placeholder' },
+];
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let currentSearch = '';
+let currentCat = 'all';
+let sortCol = null;
+let sortDir = 'asc';
+let expandedRow = null;
+
+// ══════════════════════════════════════════════
+// PARTICLES
+// ══════════════════════════════════════════════
+(function initParticles() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (8 + Math.random() * 20) + 's';
+    p.style.animationDelay = (Math.random() * 20) + 's';
+    p.style.width = p.style.height = (Math.random() > 0.5 ? 2 : 3) + 'px';
+    const colors = ['#00e5ff','#00ff88','#0088ff','#aa44ff'];
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    container.appendChild(p);
+  }
+})();
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+function highlight(text, query) {
+  if (!query) return escHtml(text);
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return escHtml(text).replace(new RegExp('(' + escaped + ')', 'gi'), '<mark>$1</mark>');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getDiffDots(level) {
+  const count = level === 'easy' ? 1 : level === 'medium' ? 2 : 3;
+  let html = '<div class="diff-dots">';
+  for (let i = 1; i <= 3; i++) {
+    html += `<div class="diff-dot${i <= count ? ' filled ' + level : ''}"></div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function badgeClass(cat) {
+  const map = {file:'badge-file',network:'badge-network',system:'badge-system',process:'badge-process',
+    text:'badge-text',user:'badge-user',package:'badge-package',termux:'badge-termux',disk:'badge-disk',
+    permission:'badge-permission',archive:'badge-archive',script:'badge-script'};
+  return map[cat] || 'badge-file';
+}
+
+// ══════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════
+function getFiltered() {
+  let data = commands;
+  if (currentCat !== 'all') {
+    data = data.filter(c => c.cat === currentCat);
+  }
+  if (currentSearch) {
+    const q = currentSearch.toLowerCase();
+    data = data.filter(c =>
+      c.cmd.toLowerCase().includes(q) ||
+      c.desc.toLowerCase().includes(q) ||
+      c.example.toLowerCase().includes(q) ||
+      c.tip.toLowerCase().includes(q) ||
+      c.cat.toLowerCase().includes(q) ||
+      c.os.toLowerCase().includes(q)
+    );
+  }
+  if (sortCol) {
+    data = [...data].sort((a,b) => {
+      let av = a[sortCol] || '', bv = b[sortCol] || '';
+      if (sortDir === 'asc') return av < bv ? -1 : av > bv ? 1 : 0;
+      return av > bv ? -1 : av < bv ? 1 : 0;
+    });
+  }
+  return data;
+}
+
+function render() {
+  const data = getFiltered();
+  const tbody = document.getElementById('tableBody');
+  const noResults = document.getElementById('noResults');
+  const tableContainer = document.getElementById('tableContainer');
+  const resultInfo = document.getElementById('resultInfo');
+
+  // Update search count badge
+  const sc = document.getElementById('searchCount');
+  sc.textContent = currentSearch ? data.length + ' results' : '';
+
+  // Result info
+  if (currentSearch || currentCat !== 'all') {
+    resultInfo.innerHTML = `Showing <span>${data.length}</span> of <span>${commands.length}</span> commands`;
+  } else {
+    resultInfo.textContent = '';
+  }
+
+  if (data.length === 0) {
+    tbody.innerHTML = '';
+    noResults.classList.add('visible');
+    tableContainer.style.display = 'none';
+    return;
+  }
+
+  noResults.classList.remove('visible');
+  tableContainer.style.display = '';
+
+  const q = currentSearch;
+  let html = '';
+
+  data.forEach((c, i) => {
+    const rowId = 'row-' + i;
+    const expandId = 'expand-' + i;
+
+    html += `<tr id="${rowId}" onclick="toggleExpand('${rowId}','${expandId}',${commands.indexOf(c)})" style="animation:fadeInRow 0.3s ease ${Math.min(i*0.02,0.5)}s both">
+      <td class="cmd-cell"><span class="cmd-code">${highlight(c.cmd, q)}</span></td>
+      <td class="desc-cell">${highlight(c.desc, q)}</td>
+      <td><span class="badge ${badgeClass(c.cat)}">${c.cat}</span></td>
+      <td>
+        <div class="difficulty">
+          ${getDiffDots(c.diff)}
+        </div>
+      </td>
+      <td style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-dim)">${c.os}</td>
+    </tr>`;
+
+    html += `<tr class="expand-row" id="${expandId}">
+      <td colspan="5">
+        <div class="expand-content">
+          <div class="expand-grid">
+            <div class="expand-card">
+              <div class="expand-card-label">⚡ Syntax</div>
+              <div class="syntax-block">${escHtml(c.syntax)}</div>
+              <button class="copy-btn" onclick="copyCmd(event,'${escHtml(c.syntax)}',this)">⎘ Copy Syntax</button>
+            </div>
+            <div class="expand-card">
+              <div class="expand-card-label">▶ Example</div>
+              <div class="syntax-block">${escHtml(c.example)}</div>
+              <button class="copy-btn" onclick="copyCmd(event,'${escHtml(c.example)}',this)">⎘ Copy Example</button>
+            </div>
+            <div class="expand-card">
+              <div class="expand-card-label">💡 Pro Tip</div>
+              <div class="expand-card-value" style="font-size:12px;line-height:1.6;color:var(--text)">${escHtml(c.tip)}</div>
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  });
+
+  tbody.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════
+// EXPAND ROW
+// ══════════════════════════════════════════════
+function toggleExpand(rowId, expandId, idx) {
+  const expandEl = document.getElementById(expandId);
+  const rowEl = document.getElementById(rowId);
+
+  // Close previously expanded
+  if (expandedRow && expandedRow.expandId !== expandId) {
+    document.getElementById(expandedRow.expandId).classList.remove('open');
+    document.getElementById(expandedRow.rowId).classList.remove('expanded');
+  }
+
+  const isOpen = expandEl.classList.contains('open');
+  expandEl.classList.toggle('open', !isOpen);
+  rowEl.classList.toggle('expanded', !isOpen);
+  expandedRow = !isOpen ? { rowId, expandId } : null;
+}
+
+// ══════════════════════════════════════════════
+// COPY
+// ══════════════════════════════════════════════
+function copyCmd(evt, text, btn) {
+  evt.stopPropagation();
+  // Decode HTML entities
+  const ta = document.createElement('textarea');
+  ta.innerHTML = text;
+  const decoded = ta.value;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(decoded).then(() => flashBtn(btn));
+  } else {
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    flashBtn(btn);
+  }
+}
+
+function flashBtn(btn) {
+  btn.textContent = '✓ Copied!';
+  btn.classList.add('copied');
+  setTimeout(() => {
+    btn.textContent = '⎘ Copy';
+    btn.classList.remove('copied');
+    if (btn.dataset.type) btn.textContent = '⎘ Copy ' + btn.dataset.type;
+  }, 2000);
+}
+
+// ══════════════════════════════════════════════
+// SEARCH
+// ══════════════════════════════════════════════
+const searchInput = document.getElementById('searchInput');
+let debounceTimer;
+
+searchInput.addEventListener('input', function() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    currentSearch = this.value.trim();
+    expandedRow = null;
+    render();
+  }, 180);
+});
+
+// Clear search on Escape
+searchInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    this.value = '';
+    currentSearch = '';
+    expandedRow = null;
+    render();
+  }
+});
+
+// ══════════════════════════════════════════════
+// FILTER TABS
+// ══════════════════════════════════════════════
+document.getElementById('filterTabs').addEventListener('click', function(e) {
+  const btn = e.target.closest('.filter-tab');
+  if (!btn) return;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = btn.dataset.cat;
+  expandedRow = null;
+  render();
+});
+
+// ══════════════════════════════════════════════
+// SORT
+// ══════════════════════════════════════════════
+const sortMap = { 0:'cmd', 1:'desc', 2:'cat', 3:'diff', 4:'os' };
+
+document.querySelector('thead').addEventListener('click', function(e) {
+  const th = e.target.closest('th');
+  if (!th) return;
+  const colIdx = [...th.parentElement.children].indexOf(th);
+  const col = sortMap[colIdx];
+  if (!col) return;
+
+  if (sortCol === col) {
+    sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortCol = col;
+    sortDir = 'asc';
+  }
+
+  document.querySelectorAll('th').forEach((t,i) => {
+    t.classList.remove('sort-asc','sort-desc');
+    if (i === colIdx) t.classList.add('sort-' + sortDir);
+  });
+
+  expandedRow = null;
+  render();
+});
+
+// ══════════════════════════════════════════════
+// 3D TILT on mouse move
+// ══════════════════════════════════════════════
+const tableWrapper = document.querySelector('.table-wrapper');
+const table3d = document.getElementById('tableContainer');
+
+tableWrapper.addEventListener('mousemove', function(e) {
+  const rect = this.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width - 0.5;
+  const y = (e.clientY - rect.top) / rect.height - 0.5;
+  table3d.style.transform = `rotateX(${-y * 4}deg) rotateY(${x * 2}deg)`;
+});
+
+tableWrapper.addEventListener('mouseleave', function() {
+  table3d.style.transform = 'rotateX(2deg) rotateY(0deg)';
+});
+
+// ══════════════════════════════════════════════
+// KEYFRAMES (injected)
+// ══════════════════════════════════════════════
+const styleEl = document.createElement('style');
+styleEl.textContent = `
+  @keyframes fadeInRow {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+`;
+document.head.appendChild(styleEl);
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+document.getElementById('totalCount').textContent = commands.length;
+render();
+
+// Keyboard shortcut: / to focus search
+document.addEventListener('keydown', function(e) {
+  if (e.key === '/' && document.activeElement !== searchInput) {
+    e.preventDefault();
+    searchInput.focus();
+  }
+});
+</script>
+</body>
+</html>
